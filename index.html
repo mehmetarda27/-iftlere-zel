@@ -3,167 +3,345 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Senin İçin</title>
+<title>Senin İçin Kodladım</title>
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
+
 body{
+  width:100%;
   height:100vh;
   overflow:hidden;
-  background:#050205;
-  font-family:sans-serif;
-  color:white;
+  font-family:Arial,sans-serif;
+  background:
+    radial-gradient(circle at top,#3b145c 0%,#13051f 38%,#020103 100%);
 }
 
-/* PARÇACIK ARKA PLAN */
 canvas{
   position:fixed;
   inset:0;
-  z-index:0;
+  width:100%;
+  height:100%;
 }
 
-/* SAHNE */
-.scene{
-  position:relative;
-  z-index:2;
-  height:100vh;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
+.top-text{
+  position:fixed;
+  top:28px;
+  left:0;
+  width:100%;
   text-align:center;
+  z-index:5;
+  color:#ff7bbd;
+  font-size:28px;
+  font-weight:900;
+  letter-spacing:3px;
+  text-shadow:0 0 18px rgba(255,90,180,.9);
+  animation:fadeDown 1.5s ease forwards;
 }
 
-/* GÜL */
-.rose{
-  width:160px;
-  height:160px;
-  border-radius:50%;
-  background:radial-gradient(circle,#ff3d7f,#6a0025);
-  box-shadow:0 0 80px rgba(255,60,130,.8);
-  animation:roseFloat 4s ease-in-out infinite;
-  margin-bottom:40px;
+.bottom-text{
+  position:fixed;
+  bottom:55px;
+  left:50%;
+  transform:translateX(-50%);
+  width:90%;
+  max-width:700px;
+  z-index:5;
+  color:white;
+  text-align:center;
+  font-size:38px;
+  font-weight:900;
+  line-height:1.2;
+  text-shadow:0 0 20px rgba(0,0,0,.9);
+  animation:fadeUp 2s ease forwards;
 }
 
-@keyframes roseFloat{
-  0%,100%{transform:translateY(0) scale(1)}
-  50%{transform:translateY(-20px) scale(1.05)}
+.bottom-text span{
+  color:#ff7bbd;
+  text-shadow:0 0 20px rgba(255,90,180,.9);
 }
 
-/* YAZILAR */
-.text{
-  opacity:0;
-  transform:translateY(30px);
-  animation:fade 1.5s forwards;
-}
-
-.text:nth-child(2){animation-delay:1s}
-.text:nth-child(3){animation-delay:3s}
-.text:nth-child(4){animation-delay:5s}
-
-@keyframes fade{
+@keyframes fadeDown{
+  from{opacity:0;transform:translateY(-30px)}
   to{opacity:1;transform:translateY(0)}
 }
 
-.big{
-  font-size:32px;
-  font-weight:900;
-  color:#ff6fa8;
+@keyframes fadeUp{
+  from{opacity:0;transform:translate(-50%,40px)}
+  to{opacity:1;transform:translate(-50%,0)}
 }
 
-.mid{
-  font-size:20px;
-  color:#ffdce8;
-  margin-top:12px;
-}
-
-.small{
-  margin-top:20px;
-  font-size:16px;
-  color:#ffbcd3;
-}
-
-/* BUTON */
-.btn{
-  margin-top:40px;
-  padding:15px 30px;
-  border-radius:999px;
-  background:linear-gradient(135deg,#ff4f93,#ffd1dc);
-  color:#190713;
-  text-decoration:none;
-  font-weight:900;
-  opacity:0;
-  animation:fade 2s forwards;
-  animation-delay:7s;
-}
-
-/* VIGNETTE */
-.overlay{
-  position:fixed;
-  inset:0;
-  background:radial-gradient(circle,transparent 40%,#000 100%);
-  z-index:1;
+@media(max-width:600px){
+  .top-text{font-size:22px}
+  .bottom-text{font-size:30px;bottom:45px}
 }
 </style>
 </head>
 
 <body>
 
-<canvas id="bg"></canvas>
-<div class="overlay"></div>
+<div class="top-text">ARDA LOVE CODE</div>
 
-<div class="scene">
+<canvas id="canvas"></canvas>
 
-  <div class="rose"></div>
-
-  <div class="text big">Saide için</div>
-  <div class="text mid">Sen hayatıma gelen en güzel şeysin</div>
-  <div class="text small">İyi ki varsın iyi ki benimlesin</div>
-
-  <a class="btn" href="https://wa.me/905XXXXXXXXX">
-    Bana da yap
-  </a>
-
+<div class="bottom-text">
+  Herkes çiçek alır<br>
+  ben senin için <span>kodlarım</span>
 </div>
 
 <script>
-const canvas=document.getElementById("bg");
-const ctx=canvas.getContext("2d");
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
 
-canvas.width=innerWidth;
-canvas.height=innerHeight;
+function resize(){
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener("resize", resize);
 
-let particles=[];
+const stars = [];
+const petals = [];
 
 for(let i=0;i<120;i++){
-  particles.push({
+  stars.push({
     x:Math.random()*canvas.width,
     y:Math.random()*canvas.height,
-    r:Math.random()*2,
-    v:Math.random()*0.5+0.2
+    r:Math.random()*2.4+0.6,
+    speed:Math.random()*0.45+0.15,
+    alpha:Math.random()*0.7+0.25
   });
 }
 
-function draw(){
-  ctx.clearRect(0,0,canvas.width,canvas.height);
+class Flower{
+  constructor(x, scale, hue, delay){
+    this.x = x;
+    this.baseY = canvas.height - 90;
+    this.scale = scale;
+    this.hue = hue;
+    this.delay = delay;
+    this.age = 0;
+    this.stem = 0;
+    this.maxStem = (260 + Math.random()*120) * scale;
+    this.bloom = 0;
+    this.maxBloom = (36 + Math.random()*12) * scale;
+    this.swing = Math.random()*Math.PI*2;
+  }
 
-  ctx.fillStyle="rgba(255,255,255,0.8)";
-  particles.forEach(p=>{
+  update(){
+    this.age++;
+
+    if(this.age < this.delay) return;
+
+    if(this.stem < this.maxStem){
+      this.stem += 3.2 * this.scale;
+    }else if(this.bloom < this.maxBloom){
+      this.bloom += 0.75 * this.scale;
+      if(Math.random() < 0.08){
+        petals.push({
+          x:this.x,
+          y:this.baseY - this.maxStem,
+          vx:(Math.random()-.5)*2,
+          vy:Math.random()*1.2+0.5,
+          r:Math.random()*5+3,
+          hue:this.hue,
+          rot:Math.random()*Math.PI
+        });
+      }
+    }
+
+    this.draw();
+  }
+
+  draw(){
+    if(this.age < this.delay) return;
+
+    const topY = this.baseY - this.stem;
+    const sway = Math.sin(Date.now()/900 + this.swing) * 10 * this.scale;
+
+    ctx.save();
+    ctx.translate(sway,0);
+
+    // glow
+    if(this.stem >= this.maxStem*0.9){
+      const glow = ctx.createRadialGradient(this.x, topY, 5, this.x, topY, 105*this.scale);
+      glow.addColorStop(0, `hsla(${this.hue},100%,65%,0.45)`);
+      glow.addColorStop(1, `hsla(${this.hue},100%,65%,0)`);
+      ctx.fillStyle = glow;
+      ctx.beginPath();
+      ctx.arc(this.x, topY, 110*this.scale, 0, Math.PI*2);
+      ctx.fill();
+    }
+
+    // stem
     ctx.beginPath();
-    ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ctx.strokeStyle = "#69ff52";
+    ctx.lineWidth = 6*this.scale;
+    ctx.lineCap = "round";
+    ctx.moveTo(this.x, this.baseY);
+    ctx.quadraticCurveTo(this.x-20*this.scale, this.baseY-this.stem/2, this.x, topY);
+    ctx.stroke();
+
+    // leaves
+    this.leaf(this.x-8*this.scale, this.baseY-this.stem*.45, -1);
+    this.leaf(this.x+6*this.scale, this.baseY-this.stem*.63, 1);
+
+    if(this.stem >= this.maxStem*0.95){
+      this.drawBloom(this.x, this.baseY-this.maxStem, this.bloom);
+    }
+
+    ctx.restore();
+  }
+
+  leaf(x,y,dir){
+    ctx.save();
+    ctx.translate(x,y);
+    ctx.rotate(dir*0.75);
+    const grad = ctx.createLinearGradient(0,0,60*this.scale,0);
+    grad.addColorStop(0,"#8cff3f");
+    grad.addColorStop(1,"#1bb436");
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.ellipse(0,0,42*this.scale,17*this.scale,0,0,Math.PI*2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  drawBloom(x,y,r){
+    if(r <= 0) return;
+
+    for(let layer=0; layer<2; layer++){
+      const count = layer === 0 ? 14 : 10;
+      const radius = r * (layer === 0 ? 1.25 : .72);
+
+      for(let i=0;i<count;i++){
+        const angle = (Math.PI*2/count)*i + layer*.25;
+        const px = x + Math.cos(angle)*radius;
+        const py = y + Math.sin(angle)*radius;
+
+        ctx.save();
+        ctx.translate(px,py);
+        ctx.rotate(angle);
+
+        const grad = ctx.createLinearGradient(-r,-r,r,r);
+        grad.addColorStop(0,`hsl(${this.hue+35},100%,72%)`);
+        grad.addColorStop(.45,`hsl(${this.hue},100%,58%)`);
+        grad.addColorStop(1,`hsl(${this.hue-35},100%,48%)`);
+
+        ctx.fillStyle = grad;
+        ctx.shadowColor = `hsl(${this.hue},100%,65%)`;
+        ctx.shadowBlur = 18;
+
+        ctx.beginPath();
+        ctx.ellipse(0,0,r*.55,r*1.05,0,0,Math.PI*2);
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    // center
+    ctx.save();
+    ctx.fillStyle = "#6b3200";
+    ctx.shadowColor = "#ffd166";
+    ctx.shadowBlur = 18;
+    ctx.beginPath();
+    ctx.arc(x,y,r*.55,0,Math.PI*2);
     ctx.fill();
 
-    p.y+=p.v;
-    if(p.y>canvas.height){
-      p.y=0;
-      p.x=Math.random()*canvas.width;
+    ctx.strokeStyle = "#ffb703";
+    ctx.lineWidth = 2*this.scale;
+    for(let i=0;i<18;i++){
+      const a = i*Math.PI*2/18;
+      ctx.beginPath();
+      ctx.moveTo(x,y);
+      ctx.lineTo(x+Math.cos(a)*r*.48,y+Math.sin(a)*r*.48);
+      ctx.stroke();
     }
-  });
-
-  requestAnimationFrame(draw);
+    ctx.restore();
+  }
 }
 
-draw();
+let flowers = [];
+
+function createFlowers(){
+  flowers = [];
+  const count = window.innerWidth < 600 ? 7 : 9;
+  const start = canvas.width*.18;
+  const end = canvas.width*.82;
+
+  for(let i=0;i<count;i++){
+    const x = start + ((end-start)/(count-1))*i + (Math.random()*30-15);
+    const scale = window.innerWidth < 600 ? Math.random()*.28+.72 : Math.random()*.35+.8;
+    const hue = 260 + Math.random()*80;
+    const delay = i*24 + Math.random()*20;
+    flowers.push(new Flower(x, scale, hue, delay));
+  }
+}
+createFlowers();
+window.addEventListener("resize", createFlowers);
+
+function drawStars(){
+  stars.forEach(s=>{
+    ctx.save();
+    ctx.globalAlpha = s.alpha;
+    ctx.fillStyle = "white";
+    ctx.shadowColor = "white";
+    ctx.shadowBlur = 10;
+    ctx.beginPath();
+    ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+    ctx.fill();
+    ctx.restore();
+
+    s.y += s.speed;
+    if(s.y > canvas.height){
+      s.y = -10;
+      s.x = Math.random()*canvas.width;
+    }
+  });
+}
+
+function drawPetals(){
+  for(let i=petals.length-1;i>=0;i--){
+    const p = petals[i];
+    ctx.save();
+    ctx.translate(p.x,p.y);
+    ctx.rotate(p.rot);
+    ctx.fillStyle = `hsla(${p.hue},100%,70%,0.85)`;
+    ctx.shadowColor = `hsl(${p.hue},100%,70%)`;
+    ctx.shadowBlur = 10;
+    ctx.beginPath();
+    ctx.ellipse(0,0,p.r,p.r*1.7,0,0,Math.PI*2);
+    ctx.fill();
+    ctx.restore();
+
+    p.x += p.vx;
+    p.y += p.vy;
+    p.rot += .03;
+
+    if(p.y > canvas.height+50) petals.splice(i,1);
+  }
+}
+
+function animate(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  // background depth
+  const bg = ctx.createRadialGradient(canvas.width/2,canvas.height*.35,50,canvas.width/2,canvas.height*.35,canvas.height);
+  bg.addColorStop(0,"rgba(113,42,170,.18)");
+  bg.addColorStop(1,"rgba(0,0,0,.18)");
+  ctx.fillStyle = bg;
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  drawStars();
+
+  flowers.forEach(f=>f.update());
+
+  drawPetals();
+
+  requestAnimationFrame(animate);
+}
+
+animate();
 </script>
 
 </body>
