@@ -3,183 +3,83 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Senin İçin Kodladım</title>
+<title>Ultra Love Scene</title>
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 
 body{
-  width:100%;
-  height:100vh;
   overflow:hidden;
-  font-family:Arial,sans-serif;
   background:#020006;
+  font-family:sans-serif;
 }
 
 canvas{
   position:fixed;
   inset:0;
+}
+
+/* yazı */
+.text{
+  position:fixed;
+  bottom:40px;
   width:100%;
-  height:100%;
-}
-
-.overlay{
-  position:fixed;
-  inset:0;
-  background:
-    radial-gradient(circle at center,transparent 35%,rgba(0,0,0,.75) 100%),
-    linear-gradient(to top,rgba(0,0,0,.78),transparent 45%,rgba(0,0,0,.55));
-  z-index:2;
-  pointer-events:none;
-}
-
-.brand{
-  position:fixed;
-  top:28px;
-  left:50%;
-  transform:translateX(-50%);
-  z-index:5;
-  color:#ff9df0;
-  font-size:24px;
-  font-weight:900;
-  letter-spacing:5px;
-  text-shadow:0 0 25px #ff42d0;
-  animation:showDown 1.4s ease forwards;
-}
-
-.card{
-  position:fixed;
-  bottom:42px;
-  left:50%;
-  transform:translateX(-50%);
-  z-index:5;
-  width:90%;
-  max-width:720px;
-  padding:26px 22px;
-  border-radius:30px;
   text-align:center;
-  background:rgba(255,255,255,.08);
-  border:1px solid rgba(255,255,255,.18);
-  backdrop-filter:blur(18px);
-  box-shadow:0 25px 80px rgba(0,0,0,.45);
-  animation:showUp 1.6s ease forwards;
-}
-
-.card h1{
   color:white;
-  font-size:42px;
-  line-height:1.12;
-  margin-bottom:10px;
-  text-shadow:0 0 20px rgba(255,255,255,.25);
-}
-
-.card h1 span{
-  color:#ff7ee7;
-  text-shadow:0 0 22px #ff3ad4;
-}
-
-.card p{
-  color:#ffe8fb;
-  font-size:18px;
-  line-height:1.6;
-}
-
-.btn{
-  margin-top:18px;
-  display:inline-block;
-  padding:14px 28px;
-  border-radius:999px;
-  background:linear-gradient(135deg,#ff3ad4,#ffd1f5);
-  color:#1b0618;
+  font-size:34px;
   font-weight:900;
-  text-decoration:none;
-  box-shadow:0 15px 45px rgba(255,58,212,.35);
+  z-index:5;
 }
 
-@keyframes showDown{
-  from{opacity:0;transform:translate(-50%,-30px)}
-  to{opacity:1;transform:translate(-50%,0)}
-}
-
-@keyframes showUp{
-  from{opacity:0;transform:translate(-50%,55px)}
-  to{opacity:1;transform:translate(-50%,0)}
-}
-
-@media(max-width:600px){
-  .brand{font-size:18px;letter-spacing:3px}
-  .card{bottom:32px;padding:22px 18px}
-  .card h1{font-size:31px}
-  .card p{font-size:15px}
+.text span{
+  color:#ff7ee7;
 }
 </style>
 </head>
 
 <body>
 
-<canvas id="scene"></canvas>
-<div class="overlay"></div>
+<canvas id="c"></canvas>
 
-<div class="brand">LOVE CODE</div>
-
-<div class="card">
-  <h1>Herkes çiçek alır<br><span>ben senin için kodlarım</span></h1>
-  <p>QR okutulduğunda açılan kişiye özel animasyonlu dijital hediye deneyimi</p>
-  <a class="btn" href="https://wa.me/905XXXXXXXXX">Bana Özel Tasarla</a>
+<div class="text">
+  Herkes çiçek alır <br>
+  ben senin için <span>kodlarım</span>
 </div>
 
 <script>
-const canvas = document.getElementById("scene");
-const ctx = canvas.getContext("2d");
+const c = document.getElementById("c");
+const ctx = c.getContext("2d");
 
-let W,H,dpr;
+let W,H;
 
 function resize(){
-  dpr = window.devicePixelRatio || 1;
-  W = window.innerWidth;
-  H = window.innerHeight;
-  canvas.width = W * dpr;
-  canvas.height = H * dpr;
-  ctx.setTransform(dpr,0,0,dpr,0,0);
+  W = c.width = window.innerWidth;
+  H = c.height = window.innerHeight;
 }
 resize();
-window.addEventListener("resize", resize);
+window.addEventListener("resize",resize);
 
-const mouse = {x: W/2, y: H/2};
-
-window.addEventListener("mousemove", e=>{
-  mouse.x=e.clientX;
-  mouse.y=e.clientY;
-});
-
-const stars=[];
-const sparkles=[];
-const fallingPetals=[];
-
-for(let i=0;i<160;i++){
+/* yıldızlar OPTİMİZE */
+let stars = [];
+for(let i=0;i<80;i++){
   stars.push({
     x:Math.random()*W,
     y:Math.random()*H,
-    r:Math.random()*1.8+.4,
-    a:Math.random()*.8+.2,
-    s:Math.random()*.25+.08
+    s:Math.random()*1.5
   });
 }
 
+/* çiçek */
 class Flower{
-  constructor(x, base, scale, hue, delay){
-    this.x=x;
-    this.base=base;
-    this.scale=scale;
-    this.hue=hue;
-    this.delay=delay;
-    this.t=0;
-    this.growth=0;
-    this.bloom=0;
-    this.height=(260+Math.random()*120)*scale;
-    this.maxBloom=(42+Math.random()*16)*scale;
-    this.phase=Math.random()*Math.PI*2;
-    this.petalRotation=Math.random()*Math.PI;
+  constructor(x, delay){
+    this.x = x;
+    this.delay = delay;
+    this.t = 0;
+    this.h = 0;
+    this.maxH = 220 + Math.random()*60;
+    this.bloom = 0;
+    this.size = 20 + Math.random()*10;
+    this.hue = 260 + Math.random()*80;
   }
 
   update(){
@@ -187,262 +87,76 @@ class Flower{
 
     if(this.t < this.delay) return;
 
-    if(this.growth < 1){
-      this.growth += .012;
-    }else if(this.bloom < 1){
-      this.bloom += .018;
-    }
-
-    if(this.bloom > .8 && Math.random()<.025){
-      fallingPetals.push({
-        x:this.x + (Math.random()-.5)*70*this.scale,
-        y:this.base - this.height + (Math.random()-.5)*20,
-        vx:(Math.random()-.5)*1.3,
-        vy:Math.random()*1.4+.5,
-        r:Math.random()*5+3,
-        hue:this.hue,
-        rot:Math.random()*Math.PI
-      });
+    if(this.h < this.maxH){
+      this.h += 2;
+    }else{
+      if(this.bloom < this.size){
+        this.bloom += 0.4;
+      }
     }
 
     this.draw();
   }
 
   draw(){
-    if(this.t < this.delay) return;
+    let top = H - this.h;
 
-    const ease = 1 - Math.pow(1-this.growth,3);
-    const stemH = this.height * ease;
-    const topX = this.x + Math.sin(Date.now()/900 + this.phase)*16*this.scale;
-    const topY = this.base - stemH;
-
-    ctx.save();
-
-    // stem glow
-    ctx.shadowColor = "#8cff6a";
-    ctx.shadowBlur = 12;
-
+    // sap
+    ctx.strokeStyle="#6cff63";
+    ctx.lineWidth=3;
     ctx.beginPath();
-    ctx.strokeStyle = "#6cff63";
-    ctx.lineWidth = 6*this.scale;
-    ctx.lineCap = "round";
-    ctx.moveTo(this.x,this.base);
-    ctx.bezierCurveTo(
-      this.x-40*this.scale,this.base-stemH*.35,
-      topX+30*this.scale,this.base-stemH*.7,
-      topX,topY
-    );
+    ctx.moveTo(this.x,H);
+    ctx.lineTo(this.x,top);
     ctx.stroke();
 
-    ctx.shadowBlur=0;
+    // çiçek
+    if(this.h >= this.maxH){
+      for(let i=0;i<8;i++){
+        let a = i*Math.PI/4;
+        let px = this.x + Math.cos(a)*this.bloom;
+        let py = top + Math.sin(a)*this.bloom;
 
-    this.drawLeaf(this.x-12*this.scale,this.base-stemH*.42,-1,this.scale);
-    this.drawLeaf(this.x+16*this.scale,this.base-stemH*.62,1,this.scale);
-
-    if(this.growth>.94){
-      this.drawBloom(topX,topY,this.maxBloom*this.bloom);
-    }
-
-    ctx.restore();
-  }
-
-  drawLeaf(x,y,dir,scale){
-    ctx.save();
-    ctx.translate(x,y);
-    ctx.rotate(dir*.75);
-    const grad = ctx.createLinearGradient(-40*scale,0,40*scale,0);
-    grad.addColorStop(0,"#48ff55");
-    grad.addColorStop(1,"#0b8f35");
-    ctx.fillStyle=grad;
-    ctx.beginPath();
-    ctx.moveTo(0,0);
-    ctx.quadraticCurveTo(55*scale,-35*scale,90*scale,0);
-    ctx.quadraticCurveTo(50*scale,28*scale,0,0);
-    ctx.fill();
-    ctx.restore();
-  }
-
-  drawBloom(x,y,r){
-    if(r<=1)return;
-
-    // aura
-    const aura = ctx.createRadialGradient(x,y,0,x,y,r*4.5);
-    aura.addColorStop(0,`hsla(${this.hue},100%,65%,.48)`);
-    aura.addColorStop(.45,`hsla(${this.hue},100%,55%,.12)`);
-    aura.addColorStop(1,`hsla(${this.hue},100%,55%,0)`);
-    ctx.fillStyle=aura;
-    ctx.beginPath();
-    ctx.arc(x,y,r*4.5,0,Math.PI*2);
-    ctx.fill();
-
-    const layers=[
-      {count:18,dist:1.65,size:1.05,rot:.0},
-      {count:14,dist:1.12,size:.88,rot:.35},
-      {count:10,dist:.62,size:.72,rot:.18}
-    ];
-
-    layers.forEach(layer=>{
-      for(let i=0;i<layer.count;i++){
-        const a=(Math.PI*2/layer.count)*i + layer.rot + this.petalRotation;
-        const px=x+Math.cos(a)*r*layer.dist;
-        const py=y+Math.sin(a)*r*layer.dist;
-
-        ctx.save();
-        ctx.translate(px,py);
-        ctx.rotate(a+Math.PI/2);
-
-        const grad=ctx.createLinearGradient(0,-r,0,r);
-        grad.addColorStop(0,`hsl(${this.hue+45},100%,76%)`);
-        grad.addColorStop(.45,`hsl(${this.hue},100%,58%)`);
-        grad.addColorStop(1,`hsl(${this.hue-35},100%,44%)`);
-
-        ctx.fillStyle=grad;
-        ctx.shadowColor=`hsl(${this.hue},100%,66%)`;
-        ctx.shadowBlur=20;
-
+        ctx.fillStyle=`hsl(${this.hue},100%,60%)`;
         ctx.beginPath();
-        ctx.moveTo(0,-r*1.25*layer.size);
-        ctx.bezierCurveTo(
-          r*.75*layer.size,-r*.75*layer.size,
-          r*.75*layer.size,r*.75*layer.size,
-          0,r*1.15*layer.size
-        );
-        ctx.bezierCurveTo(
-          -r*.75*layer.size,r*.75*layer.size,
-          -r*.75*layer.size,-r*.75*layer.size,
-          0,-r*1.25*layer.size
-        );
+        ctx.arc(px,py,this.bloom/2,0,Math.PI*2);
         ctx.fill();
-        ctx.restore();
       }
-    });
 
-    // center
-    ctx.save();
-    ctx.shadowColor="#ffd86b";
-    ctx.shadowBlur=22;
-    const center=ctx.createRadialGradient(x,y,0,x,y,r*.68);
-    center.addColorStop(0,"#ffe58a");
-    center.addColorStop(.55,"#8b4a16");
-    center.addColorStop(1,"#3a1706");
-    ctx.fillStyle=center;
-    ctx.beginPath();
-    ctx.arc(x,y,r*.65,0,Math.PI*2);
-    ctx.fill();
-
-    ctx.strokeStyle="rgba(255,224,120,.8)";
-    ctx.lineWidth=1.8*this.scale;
-    for(let i=0;i<22;i++){
-      const a=i*Math.PI*2/22;
+      ctx.fillStyle="#ffd166";
       ctx.beginPath();
-      ctx.moveTo(x,y);
-      ctx.lineTo(x+Math.cos(a)*r*.58,y+Math.sin(a)*r*.58);
-      ctx.stroke();
+      ctx.arc(this.x,top,this.bloom/3,0,Math.PI*2);
+      ctx.fill();
     }
-    ctx.restore();
   }
 }
 
-let flowers=[];
+/* çiçekler aralıklı (çakışma yok) */
+let flowers = [];
+let gap = W / 10;
 
-function setupFlowers(){
-  flowers=[];
-  const count = W<650 ? 8 : 11;
-  const start = W*.12;
-  const end = W*.88;
-
-  for(let i=0;i<count;i++){
-    const x=start+(end-start)/(count-1)*i+(Math.random()*34-17);
-    const scale=W<650 ? Math.random()*.35+.7 : Math.random()*.45+.78;
-    const hue=255+Math.random()*85;
-    flowers.push(new Flower(x,H-90,scale,hue,i*22+Math.random()*28));
-  }
-}
-setupFlowers();
-window.addEventListener("resize",setupFlowers);
-
-function background(){
-  const bg=ctx.createRadialGradient(W/2,H*.42,0,W/2,H*.42,H*.9);
-  bg.addColorStop(0,"#3b145f");
-  bg.addColorStop(.35,"#170722");
-  bg.addColorStop(1,"#020006");
-  ctx.fillStyle=bg;
-  ctx.fillRect(0,0,W,H);
-
-  const light=ctx.createRadialGradient(mouse.x,mouse.y,0,mouse.x,mouse.y,380);
-  light.addColorStop(0,"rgba(255,80,220,.10)");
-  light.addColorStop(1,"rgba(255,80,220,0)");
-  ctx.fillStyle=light;
-  ctx.fillRect(0,0,W,H);
+for(let i=1;i<9;i++){
+  flowers.push(new Flower(i*gap, i*20));
 }
 
-function drawStars(){
-  stars.forEach(s=>{
-    ctx.save();
-    ctx.globalAlpha=s.a*(.5+Math.sin(Date.now()/600+s.x)*.5);
-    ctx.fillStyle="white";
-    ctx.shadowColor="#fff";
-    ctx.shadowBlur=10;
-    ctx.beginPath();
-    ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
-    ctx.fill();
-    ctx.restore();
-
-    s.y+=s.s;
-    if(s.y>H+5){
-      s.y=-5;
-      s.x=Math.random()*W;
-    }
-  });
-}
-
-function drawGround(){
-  const g=ctx.createRadialGradient(W/2,H-60,20,W/2,H-40,W*.55);
-  g.addColorStop(0,"rgba(110,255,95,.20)");
-  g.addColorStop(.45,"rgba(255,80,220,.10)");
-  g.addColorStop(1,"rgba(0,0,0,0)");
-  ctx.fillStyle=g;
-  ctx.beginPath();
-  ctx.ellipse(W/2,H-65,W*.52,75,0,0,Math.PI*2);
-  ctx.fill();
-}
-
-function drawFallingPetals(){
-  for(let i=fallingPetals.length-1;i>=0;i--){
-    const p=fallingPetals[i];
-    ctx.save();
-    ctx.translate(p.x,p.y);
-    ctx.rotate(p.rot);
-    ctx.fillStyle=`hsla(${p.hue},100%,72%,.88)`;
-    ctx.shadowColor=`hsl(${p.hue},100%,70%)`;
-    ctx.shadowBlur=12;
-    ctx.beginPath();
-    ctx.ellipse(0,0,p.r,p.r*1.8,0,0,Math.PI*2);
-    ctx.fill();
-    ctx.restore();
-
-    p.x+=p.vx+Math.sin(Date.now()/500+p.y)*.25;
-    p.y+=p.vy;
-    p.rot+=.035;
-
-    if(p.y>H+40) fallingPetals.splice(i,1);
-  }
-}
-
-function animate(){
+/* animasyon */
+function draw(){
   ctx.clearRect(0,0,W,H);
-  background();
-  drawStars();
-  drawGround();
 
-  flowers.sort((a,b)=>a.scale-b.scale);
+  // yıldızlar
+  ctx.fillStyle="white";
+  stars.forEach(s=>{
+    ctx.fillRect(s.x,s.y,s.s,s.s);
+    s.y += 0.3;
+    if(s.y > H) s.y = 0;
+  });
+
+  // çiçekler
   flowers.forEach(f=>f.update());
 
-  drawFallingPetals();
-
-  requestAnimationFrame(animate);
+  requestAnimationFrame(draw);
 }
-animate();
+
+draw();
 </script>
 
 </body>
